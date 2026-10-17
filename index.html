@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070707" />
+    <meta
+      name="description"
+      content="A dark interactive showroom concept for the next generation of independent fashion brands."
+    />
+    <title>VOID/01 — Interactive Showroom</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene" aria-label="Interactive 3D fashion showroom"></canvas>
+
+      <div class="noise" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="cinema-bars" aria-hidden="true"><span></span><span></span></div>
+
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="VOID home">
+          <span class="brand-mark">V/</span>
+          <span>VOID<sup>01</sup></span>
+        </a>
+
+        <nav aria-label="Primary navigation">
+          <button class="nav-link is-active" data-filter="all">All pieces</button>
+          <button class="nav-link" data-filter="tops">Tops</button>
+          <button class="nav-link" data-filter="outerwear">Outerwear</button>
+          <button class="nav-link" data-filter="bottoms">Bottoms</button>
+          <button class="nav-link" data-filter="accessories">Accessories</button>
+        </nav>
+
+        <div class="top-actions">
+          <button class="admin-button" type="button">Admin</button>
+          <button class="bag-button" type="button" aria-label="Open shopping bag">
+            Bag <span id="bag-count">00</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="intro-title">
+          <p class="eyebrow"><span></span> Digital flagship / Drop 001</p>
+          <h1 id="intro-title">ENTER THE<br /><i>AFTERDARK.</i></h1>
+          <p class="intro-copy">
+            Limited forms for life after midnight. Explore the room and select a piece.
+          </p>
+          <button id="enter-room" class="primary-button" type="button">
+            <span>Scroll to enter</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+          <div class="scroll-progress" aria-hidden="true"><span id="entry-progress"></span></div>
+          <div class="entry-status" aria-hidden="true">
+            <span>Access</span><strong>Ulaanbaatar / 00:00</strong>
+          </div>
+        </section>
+
+        <aside class="room-guide" aria-label="3D controls">
+          <span class="guide-index">01</span>
+          <div>
+            <strong>Move through the room</strong>
+            <small>Drag to look · scroll to move · select a piece</small>
+          </div>
+        </aside>
+
+        <div class="showroom-pages" aria-label="Browse showroom displays">
+          <button id="showroom-prev" type="button" aria-label="Previous display">←</button>
+          <span id="showroom-page">Display 01 / 01</span>
+          <button id="showroom-next" type="button" aria-label="Next display">→</button>
+        </div>
+
+        <section class="product-drawer" id="product-drawer" aria-live="polite" aria-hidden="true">
+          <button class="drawer-close" type="button" aria-label="Close product details">×</button>
+          <div class="product-visual" id="product-visual">
+            <span id="product-code">V/001</span>
+            <img id="product-image" src="/products/black-jacket.jpg" alt="Night Shift Jacket" />
+          </div>
+          <div class="product-copy">
+            <p class="eyebrow">Selected piece</p>
+            <h2 id="product-name">Night Shift Jacket</h2>
+            <p id="product-description">
+              Structured outer layer with an oversized profile and technical finish.
+            </p>
+            <div class="product-meta">
+              <div><small>Color</small><strong id="product-color">Obsidian</strong></div>
+              <div><small>Fit</small><strong>Relaxed</strong></div>
+              <div><small>Drop</small><strong>001</strong></div>
+            </div>
+            <div class="product-action">
+              <strong id="product-price">₮289,000</strong>
+              <button id="add-to-bag" type="button">Add to bag <span>＋</span></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="fit-panel" id="fit-panel" aria-hidden="true" aria-labelledby="fit-title">
+          <button class="fit-close" type="button" aria-label="Close your fit">×</button>
+          <header class="fit-header">
+            <p class="eyebrow"><span></span> Digital mirror</p>
+            <h2 id="fit-title">YOUR<br /><i>VOID FIT.</i></h2>
+            <p>Build one afterdark uniform. Every piece you add becomes part of the look.</p>
+          </header>
+          <div class="fit-items" id="fit-items">
+            <div class="fit-empty">
+              <span>00</span>
+              <strong>No pieces selected</strong>
+              <small>Open a cabinet piece and add it to your fit.</small>
+            </div>
+          </div>
+          <footer class="fit-footer">
+            <div><span>Fit total</span><strong id="fit-total">₮0</strong></div>
+            <button id="open-tryon" class="tryon-launch" type="button">Try on this fit <span>◎</span></button>
+            <button id="fit-checkout" type="button">Reserve this fit <span>↗</span></button>
+          </footer>
+        </section>
+
+        <section class="tryon-studio" id="tryon-studio" aria-hidden="true" aria-labelledby="tryon-title">
+          <header class="tryon-topbar">
+            <div><span>VOID LAB / Body simulation</span><strong>Avatar fitting room</strong></div>
+            <button class="tryon-close" type="button" aria-label="Close virtual try-on">×</button>
+          </header>
+
+          <aside class="body-controls">
+            <p class="eyebrow"><span></span> Body profile</p>
+            <h2 id="tryon-title">BUILD YOUR<br /><i>SILHOUETTE.</i></h2>
+            <p class="tryon-note">Visual styling prototype — not a guaranteed sizing measurement.</p>
+
+            <label class="body-slider">
+              <span>Height <strong id="height-value">175 cm</strong></span>
+              <input id="avatar-height" type="range" min="150" max="200" value="175" />
+            </label>
+            <label class="body-slider">
+              <span>Weight <strong id="weight-value">70 kg</strong></span>
+              <input id="avatar-weight" type="range" min="45" max="130" value="70" />
+            </label>
+            <label class="body-slider">
+              <span>Fit preference <strong id="fit-value">Regular</strong></span>
+              <input id="avatar-fit" type="range" min="0" max="2" value="1" />
+            </label>
+
+            <div class="avatar-actions">
+              <button id="avatar-left" type="button">← Rotate</button>
+              <button id="avatar-right" type="button">Rotate →</button>
+            </div>
+          </aside>
+
+          <div class="avatar-stage-copy" aria-hidden="true">
+            <span>Real-time outfit system</span>
+            <strong id="avatar-body-code">175 / 70</strong>
+            <small id="human-base-status">LOADING HUMAN / 00%</small>
+          </div>
+
+          <aside class="outfit-control">
+            <div class="outfit-heading">
+              <span>Selected fit</span>
+              <strong id="outfit-count">00 pieces</strong>
+            </div>
+            <div id="avatar-outfit" class="avatar-outfit"></div>
+            <div class="size-result">
+              <span>Suggested base size</span>
+              <strong id="suggested-size">M</strong>
+              <small>Calculated from this prototype body profile.</small>
+            </div>
+          </aside>
+        </section>
+
+        <section class="admin-panel" id="admin-panel" aria-hidden="true" aria-labelledby="admin-title">
+          <header class="admin-topbar">
+            <div>
+              <span class="admin-kicker">VOID OS / Inventory</span>
+              <h2 id="admin-title">Showroom Admin</h2>
+            </div>
+            <div class="admin-topbar-actions">
+              <span class="admin-storage-status"><i></i> Local demo database</span>
+              <button class="admin-close" type="button" aria-label="Close admin">×</button>
+            </div>
+          </header>
+
+          <div class="admin-layout">
+            <aside class="admin-catalog">
+              <div class="admin-section-heading">
+                <div>
+                  <span>Published inventory</span>
+                  <strong id="admin-product-count">00 pieces</strong>
+                </div>
+                <span id="admin-ready-count">00 try-on ready</span>
+              </div>
+              <div class="admin-product-list" id="admin-product-list"></div>
+            </aside>
+
+            <form class="admin-form" id="admin-form">
+              <div class="admin-form-heading">
+                <span>New product</span>
+                <strong id="admin-sku-preview">V/006</strong>
+              </div>
+
+              <div class="admin-fields two-columns">
+                <label>
+                  <span>Product name</span>
+                  <input id="admin-name" name="name" required maxlength="48" placeholder="Shadow Utility Vest" />
+                </label>
+                <label>
+                  <span>Price / MNT</span>
+                  <input id="admin-price" name="price" required type="number" min="0" step="1000" placeholder="249000" />
+                </label>
+                <label>
+                  <span>Category</span>
+                  <select id="admin-category" name="category">
+                    <option value="tops">Tops</option>
+                    <option value="outerwear">Outerwear</option>
+                    <option value="bottoms">Bottoms</option>
+                    <option value="accessories">Accessories</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Color</span>
+                  <input id="admin-color" name="color" required maxlength="28" placeholder="Obsidian" />
+                </label>
+              </div>
+
+              <label class="admin-description">
+                <span>Description</span>
+                <textarea id="admin-description" name="description" required maxlength="180" placeholder="Short product story for the immersive inspect view."></textarea>
+              </label>
+
+              <div class="admin-asset-grid">
+                <div class="admin-upload-stack">
+                  <label class="admin-upload" for="admin-image">
+                    <input id="admin-image" name="image" type="file" accept="image/png,image/jpeg,image/webp" required />
+                    <span class="upload-icon">＋</span>
+                    <strong>Front view / required</strong>
+                    <small>Clean background · JPG, PNG or WEBP · max 1.5 MB</small>
+                    <img id="admin-image-preview" alt="Selected product preview" />
+                  </label>
+                  <div class="admin-view-row">
+                    <label for="admin-image-back">
+                      <input id="admin-image-back" type="file" accept="image/png,image/jpeg,image/webp" />
+                      <span>Back view</span><b id="admin-back-label">Add</b>
+                    </label>
+                    <label for="admin-image-side">
+                      <input id="admin-image-side" type="file" accept="image/png,image/jpeg,image/webp" />
+                      <span>Side view</span><b id="admin-side-label">Add</b>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="admin-tryon-card">
+                  <span class="admin-card-index">VOID / 3D garment lab</span>
+                  <strong>Image → streetwear asset</strong>
+                  <p>Instant mode builds a stylized GLB draft. A connected AI worker adds PBR geometry; rig mapping makes it wearable.</p>
+                  <label class="admin-preset-label" for="admin-silhouette">
+                    <span>Silhouette preset</span>
+                    <select id="admin-silhouette">
+                      <option value="oversized-tee">Oversized tee</option>
+                      <option value="heavy-hoodie">Heavy hoodie</option>
+                      <option value="puffer-jacket">Puffer jacket</option>
+                      <option value="cropped-shell">Cropped shell</option>
+                      <option value="utility-vest">Utility vest</option>
+                      <option value="cargo-pant">Cargo pant</option>
+                      <option value="wide-sweatpant">Wide sweatpant</option>
+                      <option value="high-top">High-top</option>
+                      <option value="low-runner">Low runner</option>
+                    </select>
+                  </label>
+                  <button class="admin-build-button" id="admin-build-draft" type="button">
+                    <span>Build instant 3D draft</span><b>↗</b>
+                  </button>
+                  <div class="admin-pipeline" id="admin-pipeline" aria-live="polite">
+                    <span class="is-current">01 / Read photo</span>
+                    <span>02 / Build geometry</span>
+                    <span>03 / Map material</span>
+                    <span>04 / Rig for body</span>
+                  </div>
+                  <div class="admin-asset-actions">
+                    <a id="admin-glb-download" hidden>Download draft GLB</a>
+                    <label class="admin-file-button" for="admin-glb">
+                      <input id="admin-glb" name="glb" type="file" accept=".glb,model/gltf-binary" />
+                      <span id="admin-glb-label">Or attach production GLB</span><b>＋</b>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="admin-fields three-columns">
+                <label>
+                  <span>Display</span>
+                  <select id="admin-display" name="display">
+                    <option value="wall">Wall cabinet</option>
+                    <option value="rack">Clothing rack</option>
+                    <option value="pedestal">Featured pedestal</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Collection</span>
+                  <input id="admin-collection" name="collection" value="DROP 001" maxlength="32" />
+                </label>
+                <label class="admin-check">
+                  <input id="admin-featured" name="featured" type="checkbox" />
+                  <span>Featured piece</span>
+                </label>
+              </div>
+
+              <footer class="admin-publish-row">
+                <p id="admin-message">Add a clean front image. Back and side views improve AI geometry.</p>
+                <button type="submit">Publish to showroom <span>↗</span></button>
+              </footer>
+            </form>
+          </div>
+        </section>
+
+        <div class="piece-label" id="piece-label" aria-hidden="true">
+          <span id="label-code">V/001</span>
+          <strong id="label-name">Night Shift Jacket</strong>
+        </div>
+
+        <div class="sound-status" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <small>Ambient</small>
+        </div>
+      </main>
+
+      <div class="loader" id="loader">
+        <div class="loader-brand">VOID<sup>01</sup></div>
+        <div class="loader-line"><span></span></div>
+        <small>Building the room</small>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
