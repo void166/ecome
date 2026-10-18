@@ -2,156 +2,19 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import './style.css';
+import { LOOKS } from './catalog.js';
+import {
+  addCustomProduct, customProducts, escapeHtml, fit, markBodyProfileUsed, productById, products,
+  removeCustomProduct, removeFromBag, setSuggestedSize, slugFor, subscribe,
+} from './store.js';
 
-const defaultProducts = [
-  {
-    id: 'V/001',
-    name: 'Night Shift Jacket',
-    category: 'outerwear',
-    price: '₮289,000',
-    colorName: 'Obsidian',
-    accent: '#171b19',
-    style: 'puffer-jacket',
-    image: '/products/black-jacket.jpg',
-    description: 'Structured outer layer with an oversized profile and technical finish.',
-  },
-  {
-    id: 'V/002',
-    name: 'Signal Hoodie',
-    category: 'tops',
-    price: '₮189,000',
-    colorName: 'Sage / Sand',
-    accent: '#899d32',
-    style: 'heavy-hoodie',
-    image: '/products/hoodies.jpg',
-    description: 'Heavy cotton hoodie cut loose, finished with a sharp double-layer hood.',
-  },
-  {
-    id: 'V/003',
-    name: 'Concrete Tee',
-    category: 'tops',
-    price: '₮89,000',
-    colorName: 'Black',
-    accent: '#d8d0c2',
-    style: 'oversized-tee',
-    image: '/products/black-tees.jpg',
-    description: 'Dense jersey tee with dropped shoulders and a clean architectural drape.',
-  },
-  {
-    id: 'V/004',
-    name: 'Static Sweatpant',
-    category: 'bottoms',
-    price: '₮219,000',
-    colorName: 'Graphite',
-    accent: '#2b302e',
-    style: 'wide-sweatpant',
-    image: '/products/sweatpants.jpg',
-    description: 'Heavyweight brushed cotton sweatpant with a relaxed leg and minimal finish.',
-  },
-  {
-    id: 'V/005',
-    name: 'Afterdark High',
-    category: 'accessories',
-    price: '₮249,000',
-    colorName: 'Black / White',
-    accent: '#191c1b',
-    style: 'high-top',
-    image: '/products/sneakers.jpg',
-    description: 'Monochrome high-top profile selected for the VOID/01 afterdark uniform.',
-  },
-  {
-    id: 'V/006',
-    name: 'Null Zip Layer',
-    category: 'outerwear',
-    price: '₮269,000',
-    colorName: 'Carbon',
-    accent: '#26332f',
-    style: 'cropped-shell',
-    image: '/products/black-jacket.jpg',
-    description: 'A cropped technical shell cut for sharp layering after midnight.',
-  },
-  {
-    id: 'V/007',
-    name: 'Ghostline Hoodie',
-    category: 'tops',
-    price: '₮199,000',
-    colorName: 'Dust / Acid',
-    accent: '#73862d',
-    style: 'heavy-hoodie',
-    image: '/products/hoodies.jpg',
-    description: 'Dense loopback cotton with a floating hood and restrained signal detail.',
-  },
-  {
-    id: 'V/008',
-    name: 'Division Tee',
-    category: 'tops',
-    price: '₮99,000',
-    colorName: 'Void Black',
-    accent: '#1e211f',
-    style: 'oversized-tee',
-    image: '/products/black-tees.jpg',
-    description: 'Boxy uniform tee with a reinforced neck and long architectural sleeve.',
-  },
-  {
-    id: 'V/009',
-    name: 'Transit Cargo',
-    category: 'bottoms',
-    price: '₮239,000',
-    colorName: 'Ash',
-    accent: '#3b413d',
-    style: 'cargo-pant',
-    image: '/products/sweatpants.jpg',
-    description: 'Wide utility trouser with articulated knees and concealed cargo storage.',
-  },
-  {
-    id: 'V/010',
-    name: 'Mono Runner',
-    category: 'accessories',
-    price: '₮229,000',
-    colorName: 'Bone / Black',
-    accent: '#d9d2c3',
-    style: 'low-runner',
-    image: '/products/sneakers.jpg',
-    description: 'Low monochrome runner built to finish the daily VOID uniform.',
-  },
-  {
-    id: 'V/011',
-    name: 'Signal Vest',
-    category: 'outerwear',
-    price: '₮179,000',
-    colorName: 'Night Olive',
-    accent: '#66752b',
-    style: 'utility-vest',
-    image: '/products/black-jacket.jpg',
-    description: 'Modular sleeveless layer with an engineered shoulder and utility pockets.',
-  },
-  {
-    id: 'V/012',
-    name: 'System Pant',
-    category: 'bottoms',
-    price: '₮209,000',
-    colorName: 'Graphite',
-    accent: '#262c29',
-    style: 'straight-pant',
-    image: '/products/sweatpants.jpg',
-    description: 'Straight technical pant designed to move between studio and street.',
-  },
-];
-
-const PRODUCT_STORAGE_KEY = 'void-showroom-products-v1';
-
-function loadLocalProducts() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(PRODUCT_STORAGE_KEY) || '[]');
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
-}
-
-let customProducts = loadLocalProducts();
-let products = [...defaultProducts, ...customProducts];
+// The three.js showroom and avatar try-on. Loaded on demand by app.js for the 3D
+// home and the try-on; the shop pages never download it.
+let api = {
+  navigate() {}, openBag() {}, closeOverlays() {}, isOverlayOpen: () => false, onTryonClosed() {},
+};
+let active = false;
+let animating = false;
 
 const canvas = document.querySelector('#scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -399,7 +262,7 @@ function buildCorridor() {
   signContext.textAlign = 'center';
   signContext.fillStyle = '#d7ff3f';
   signContext.font = '900 190px Arial Black, Arial';
-  signContext.fillText('VOID / 01', 600, 220);
+  signContext.fillText('VOID / 002', 600, 220);
   signContext.fillStyle = '#f2f0e9';
   signContext.font = '34px monospace';
   signContext.fillText('ACCESS THE AFTERDARK', 600, 305);
@@ -1464,6 +1327,7 @@ function loadRealisticHuman() {
       }
       updateAvatarBody();
       updateAvatarOutfit();
+      placeHero();
     },
     (event) => {
       if (!status || !event.total) return;
@@ -1856,10 +1720,10 @@ function addBrandMark() {
   ctx.fillStyle = '#eef1ea';
   ctx.font = '900 126px Arial Black, Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('VOID / 01', 512, 138);
+  ctx.fillText('VOID / 002', 512, 138);
   ctx.fillStyle = '#d7ff3f';
   ctx.font = '26px monospace';
-  ctx.fillText('YOUTH DIVISION  —  ULAANBAATAR', 512, 195);
+  ctx.fillText('AFTERDARK CLUB  —  ULAANBAATAR', 512, 195);
   const texture = new THREE.CanvasTexture(labelCanvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   const sign = new THREE.Mesh(
@@ -1868,6 +1732,111 @@ function addBrandMark() {
   );
   sign.position.set(0, 6.45, -6.47);
   scene.add(sign);
+}
+
+// Streetwear details: gritty concrete, spray tags on the side walls and a
+// drop tape across the floor. All drawn on canvases, no extra downloads.
+function canvasTexture(width, height, draw) {
+  const surface = document.createElement('canvas');
+  surface.width = width;
+  surface.height = height;
+  draw(surface.getContext('2d'), width, height);
+  const texture = new THREE.CanvasTexture(surface);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function sprayTag(text, color) {
+  return canvasTexture(1024, 512, (ctx, width, height) => {
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(-0.08);
+    ctx.font = 'italic 900 190px "Arial Black", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Overspray halo, then the solid fill and a hard outline.
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 28;
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.35;
+    ctx.fillText(text, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    ctx.fillText(text, 0, 0);
+    ctx.lineWidth = 7;
+    ctx.strokeStyle = '#0b0c0b';
+    ctx.strokeText(text, 0, 0);
+    const span = ctx.measureText(text).width;
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 14; i += 1) {
+      const x = -span / 2 + ((i * 97) % span);
+      const length = 30 + ((i * 53) % 110);
+      ctx.lineWidth = 3 + (i % 3) * 2;
+      ctx.beginPath();
+      ctx.moveTo(x, 70);
+      ctx.lineTo(x, 70 + length);
+      ctx.stroke();
+    }
+  });
+}
+
+function addStreetDetails() {
+  const grit = canvasTexture(256, 256, (ctx, width, height) => {
+    ctx.fillStyle = '#9a9a9a';
+    ctx.fillRect(0, 0, width, height);
+    for (let i = 0; i < 2600; i += 1) {
+      const shade = 110 + Math.floor(Math.random() * 120);
+      ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+      ctx.fillRect(Math.random() * width, Math.random() * height, 1 + Math.random() * 2, 1 + Math.random() * 2);
+    }
+  });
+  grit.wrapS = THREE.RepeatWrapping;
+  grit.wrapT = THREE.RepeatWrapping;
+  grit.repeat.set(5, 5);
+  materials.concrete.map = grit;
+  materials.concrete.color.set(0x2b2e2d);
+  materials.concrete.needsUpdate = true;
+
+  const tag = (text, color, position, rotationY, width) => {
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(width, width / 2),
+      new THREE.MeshBasicMaterial({ map: sprayTag(text, color), transparent: true, depthWrite: false, toneMapped: false }),
+    );
+    plane.position.set(...position);
+    plane.rotation.y = rotationY;
+    scene.add(plane);
+  };
+  tag('AFTERDARK', '#d7ff3f', [-8.2, 4.5, 0.4], Math.PI / 2, 7);
+  tag('UB 002', '#f0ede6', [8.2, 4.7, 1.2], -Math.PI / 2, 5.4);
+  tag('VOID', '#ff5b4a', [-8.2, 1.9, -4.6], Math.PI / 2, 3.2);
+
+  const tape = canvasTexture(2048, 64, (ctx, width, height) => {
+    ctx.fillStyle = '#d7ff3f';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#0b0c0b';
+    for (let x = -height; x < width; x += 56) {
+      ctx.beginPath();
+      ctx.moveTo(x, height);
+      ctx.lineTo(x + 22, height);
+      ctx.lineTo(x + 22 + height, 0);
+      ctx.lineTo(x + height, 0);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#d7ff3f';
+    for (let x = 40; x < width; x += 420) ctx.fillRect(x - 12, 10, 300, height - 20);
+    ctx.fillStyle = '#0b0c0b';
+    ctx.font = '900 30px "Arial Black", Arial';
+    ctx.textBaseline = 'middle';
+    for (let x = 40; x < width; x += 420) ctx.fillText('DROP 002  —  VOID', x, height / 2 + 1);
+  });
+  const floorTape = new THREE.Mesh(
+    new THREE.PlaneGeometry(15.6, 0.28),
+    new THREE.MeshBasicMaterial({ map: tape, toneMapped: false }),
+  );
+  floorTape.rotation.x = -Math.PI / 2;
+  floorTape.position.set(0, 0.012, -4.75);
+  scene.add(floorTape);
 }
 
 function addAtmosphere() {
@@ -1910,31 +1879,23 @@ buildEntrance();
 buildAvatar();
 buildProducts();
 addBrandMark();
+addStreetDetails();
 addAtmosphere();
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2(3, 3);
 const clock = new THREE.Clock();
 let hovered = null;
-let selected = null;
 let dragging = false;
 let previousPointer = { x: 0, y: 0 };
 
-const drawer = document.querySelector('#product-drawer');
 const label = document.querySelector('#piece-label');
 const intro = document.querySelector('.intro');
-const fitPanel = document.querySelector('#fit-panel');
-const fitItemsElement = document.querySelector('#fit-items');
-const fitTotalElement = document.querySelector('#fit-total');
-const bagButton = document.querySelector('.bag-button');
-const addToBagButton = document.querySelector('#add-to-bag');
 const tryonStudio = document.querySelector('#tryon-studio');
 const avatarOutfitElement = document.querySelector('#avatar-outfit');
-const openTryonButton = document.querySelector('#open-tryon');
 const adminPanel = document.querySelector('#admin-panel');
 const adminForm = document.querySelector('#admin-form');
 const adminProductList = document.querySelector('#admin-product-list');
-const fit = [];
 let pendingImageData = '';
 let pendingBackImageData = '';
 let pendingSideImageData = '';
@@ -1963,6 +1924,50 @@ function enterRoom() {
   intro.classList.add('is-hidden');
   document.body.classList.add('room-entered');
   targetZoom = 7.8;
+  placeHero();
+}
+
+// --- Hero mannequin: the realistic avatar stands in the room wearing the zone's look.
+const TRYON_POSITION = new THREE.Vector3(0, 0.08, 8);
+const HERO_POSITION = new THREE.Vector3(4.9, 0.08, -2.5);
+const HERO_SCALE = 0.62;
+const HERO_YAW = -0.5;
+const ZONE_YAW = { all: 0, outerwear: -0.1, tops: -0.035, bottoms: 0.035, accessories: 0.1 };
+let heroZone = 'all';
+let heroScale = 1;
+
+// The fitting-room key/rim lights are tuned for the dark studio; in the lit room
+// they wash the clothes out, so the hero runs them at a fraction.
+function setAvatarLights(factor) {
+  avatarGroup.children.forEach((child) => {
+    if (!child.isPointLight) return;
+    child.userData.baseIntensity ??= child.intensity;
+    child.intensity = child.userData.baseIntensity * factor;
+  });
+}
+
+function lookItems(zone) {
+  return (LOOKS[zone] || []).map(productById).filter(Boolean);
+}
+
+function placeHero() {
+  if (!avatarGroup || avatarMode) return;
+  // The side of the room is only in frame on landscape screens; phones get the look card.
+  avatarGroup.visible = roomEntered && window.innerWidth / window.innerHeight > 1.05;
+  avatarGroup.position.copy(HERO_POSITION);
+  setAvatarLights(0.12);
+  heroScale = HERO_SCALE;
+  targetAvatarYaw = HERO_YAW;
+  dressAvatar(lookItems(heroZone));
+  updateAvatarBody();
+}
+
+function setZone(zone) {
+  heroZone = zone;
+  if (!roomEntered) enterRoom();
+  setFilter(zone);
+  targetYaw = ZONE_YAW[zone] ?? 0;
+  placeHero();
 }
 
 function avatarZoomForViewport() {
@@ -1972,11 +1977,18 @@ function avatarZoomForViewport() {
 
 function openTryon() {
   if (!fit.length) return;
-  closeProduct();
-  closeFit();
+  api.closeOverlays();
+  closeAdmin();
+  activate();
+  markBodyProfileUsed();
   avatarMode = true;
   avatarBackdrop.visible = true;
   avatarGroup.visible = true;
+  avatarGroup.position.copy(TRYON_POSITION);
+  setAvatarLights(1);
+  heroScale = 1;
+  targetAvatarYaw = 0;
+  avatarYaw = 0;
   cameraTarget.set(0, 3.05, 8);
   targetZoom = avatarZoomForViewport();
   currentZoom = targetZoom;
@@ -1994,6 +2006,7 @@ function openTryon() {
 }
 
 function closeTryon() {
+  if (!avatarMode) return;
   avatarMode = false;
   avatarBackdrop.visible = false;
   avatarGroup.visible = false;
@@ -2002,6 +2015,9 @@ function closeTryon() {
   document.body.classList.remove('tryon-is-open');
   cameraTarget.set(0, 2.55, -3.2);
   targetZoom = 7.8;
+  targetYaw = ZONE_YAW[heroZone] ?? 0;
+  placeHero();
+  api.onTryonClosed();
 }
 
 function closeAdmin() {
@@ -2011,8 +2027,7 @@ function closeAdmin() {
 }
 
 function openAdmin() {
-  closeProduct();
-  closeFit();
+  api.closeOverlays();
   closeTryon();
   label.classList.remove('is-visible');
   renderAdminProducts();
@@ -2020,63 +2035,6 @@ function openAdmin() {
   adminPanel.classList.add('is-open');
   adminPanel.setAttribute('aria-hidden', 'false');
   document.body.classList.add('admin-is-open');
-}
-
-function closeProduct() {
-  drawer.classList.remove('is-open');
-  drawer.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('is-inspecting');
-  selected = null;
-}
-
-function openFit() {
-  closeProduct();
-  fitPanel.classList.add('is-open');
-  fitPanel.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('fit-is-open');
-}
-
-function closeFit() {
-  fitPanel.classList.remove('is-open');
-  fitPanel.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('fit-is-open');
-}
-
-function priceValue(price) {
-  return Number(price.replace(/[^0-9]/g, ''));
-}
-
-function updateFit() {
-  document.querySelector('#bag-count').textContent = String(fit.length).padStart(2, '0');
-  fitTotalElement.textContent = `₮${fit
-    .reduce((total, product) => total + priceValue(product.price), 0)
-    .toLocaleString('en-US')}`;
-  openTryonButton.disabled = fit.length === 0;
-  document.querySelector('#outfit-count').textContent = `${String(fit.length).padStart(2, '0')} pieces`;
-
-  if (!fit.length) {
-    fitItemsElement.innerHTML = `
-      <div class="fit-empty">
-        <span>00</span>
-        <strong>No pieces selected</strong>
-        <small>Open a cabinet piece and add it to your fit.</small>
-      </div>`;
-    updateAvatarOutfit();
-    return;
-  }
-
-  fitItemsElement.innerHTML = fit.map((product, index) => `
-    <article class="fit-item" style="--item-accent:${product.accent}">
-      <span class="fit-item-index">0${index + 1}</span>
-      <img src="${product.image}" alt="" />
-      <div>
-        <small>${product.id} / ${product.colorName}</small>
-        <strong>${product.name}</strong>
-        <span>${product.price}</span>
-      </div>
-      <button type="button" data-remove="${product.id}" aria-label="Remove ${product.name}">×</button>
-    </article>`).join('');
-  updateAvatarOutfit();
 }
 
 function setGarmentColor(group, color) {
@@ -2112,27 +2070,30 @@ function applyGarmentVariant(category, product) {
   }
 }
 
-function updateAvatarOutfit() {
+function dressAvatar(items) {
   if (!avatarGroup) return;
   const categories = ['tops', 'outerwear', 'bottoms', 'accessories'];
   categories.forEach((category) => {
-    const selectedItem = [...fit].reverse().find((product) => product.category === category);
+    const selectedItem = [...items].reverse().find((product) => product.category === category);
     avatarGarments[category].visible = Boolean(selectedItem);
     if (selectedItem) {
       setGarmentColor(avatarGarments[category], selectedItem.accent);
       applyGarmentVariant(category, selectedItem);
     }
   });
+}
 
-  if (!avatarOutfitElement) return;
+function updateAvatarOutfit() {
+  if (avatarMode) dressAvatar(fit);
+  document.querySelector('#outfit-count').textContent = `${String(fit.length).padStart(2, '0')} pieces`;
   avatarOutfitElement.innerHTML = fit.length
     ? fit.map((product) => `
-      <article style="--outfit-accent:${product.accent}">
-        <img src="${product.image}" alt="" />
-        <div><span>${product.category}</span><strong>${product.name}</strong></div>
-        <button type="button" data-avatar-remove="${product.id}" aria-label="Remove ${product.name}">×</button>
+      <article style="--outfit-accent:${escapeHtml(product.accent)}">
+        <img src="${escapeHtml(product.image)}" alt="" />
+        <div><span>${escapeHtml(product.category)}</span><strong>${escapeHtml(product.name)}</strong></div>
+        <button type="button" data-avatar-remove="${escapeHtml(product.id)}" aria-label="Remove ${escapeHtml(product.name)}">×</button>
       </article>`).join('')
-    : '<p class="avatar-empty">Add showroom pieces to build an outfit.</p>';
+    : '<p class="avatar-empty">Add pieces to your bag to build an outfit.</p>';
 }
 
 function updateAvatarBody() {
@@ -2142,7 +2103,7 @@ function updateAvatarBody() {
   const fitPreference = Number(document.querySelector('#avatar-fit').value);
   const heightScale = height / 175;
   const widthScale = THREE.MathUtils.clamp(0.82 + (weight - 45) / 220, 0.82, 1.22);
-  avatarGroup.scale.set(1, heightScale, 1);
+  avatarGroup.scale.set(heroScale, heightScale * heroScale, heroScale);
   avatarMorph.scale.set(widthScale, 1, widthScale);
   const garmentEase = [0.97, 1.045, 1.13][fitPreference];
   Object.values(avatarGarments).forEach((garment) => {
@@ -2162,7 +2123,9 @@ function updateAvatarBody() {
   const bmi = weight / ((height / 100) ** 2);
   let sizeIndex = bmi < 20 ? 0 : bmi < 25.5 ? 1 : bmi < 30 ? 2 : 3;
   sizeIndex = THREE.MathUtils.clamp(sizeIndex + fitPreference - 1, 0, 3);
-  document.querySelector('#suggested-size').textContent = ['S', 'M', 'L', 'XL'][sizeIndex];
+  const suggested = ['S', 'M', 'L', 'XL'][sizeIndex];
+  if (avatarMode) setSuggestedSize(suggested);
+  document.querySelector('#suggested-size').textContent = suggested;
 }
 
 function nextProductId() {
@@ -2191,51 +2154,16 @@ function renderAdminProducts() {
     </article>`).join('');
 }
 
-function showProduct(product) {
-  closeFit();
-  selected = product;
-  drawer.classList.add('is-open');
-  drawer.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('is-inspecting');
-  document.querySelector('#product-code').textContent = product.id;
-  document.querySelector('#product-name').textContent = product.name;
-  document.querySelector('#product-description').textContent = product.description;
-  document.querySelector('#product-color').textContent = product.colorName;
-  document.querySelector('#product-price').textContent = product.price;
-  document.querySelector('#product-visual').style.setProperty('--product-color', product.accent);
-  const productImage = document.querySelector('#product-image');
-  productImage.src = product.image;
-  productImage.alt = product.name;
-  intro.classList.add('is-hidden');
-  const isAdded = fit.some((item) => item.id === product.id);
-  addToBagButton.innerHTML = isAdded ? 'In your fit <span>✓</span>' : 'Add to fit <span>＋</span>';
-}
-
 function setFilter(filter) {
   currentFilter = filter;
   showroomPage = 0;
   buildProducts();
 }
 
-document.querySelectorAll('[data-filter]').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('[data-filter]').forEach((item) => item.classList.remove('is-active'));
-    button.classList.add('is-active');
-    setFilter(button.dataset.filter);
-    enterRoom();
-    targetZoom = 8.2;
-  });
-});
-
 document.querySelector('#enter-room').addEventListener('click', enterRoom);
 
-document.querySelector('.drawer-close').addEventListener('click', closeProduct);
-document.querySelector('.fit-close').addEventListener('click', closeFit);
-bagButton.addEventListener('click', openFit);
-document.querySelector('.admin-button').addEventListener('click', openAdmin);
 document.querySelector('.admin-close').addEventListener('click', closeAdmin);
 document.querySelector('.tryon-close').addEventListener('click', closeTryon);
-openTryonButton.addEventListener('click', openTryon);
 
 document.querySelector('#showroom-prev').addEventListener('click', () => {
   showroomPage = Math.max(0, showroomPage - 1);
@@ -2256,9 +2184,7 @@ document.querySelector('#avatar-right').addEventListener('click', () => { target
 avatarOutfitElement.addEventListener('click', (event) => {
   const removeButton = event.target.closest('[data-avatar-remove]');
   if (!removeButton) return;
-  const index = fit.findIndex((product) => product.id === removeButton.dataset.avatarRemove);
-  if (index !== -1) fit.splice(index, 1);
-  updateFit();
+  removeFromBag(removeButton.dataset.avatarRemove);
   if (!fit.length) closeTryon();
 });
 
@@ -2509,20 +2435,14 @@ adminForm.addEventListener('submit', (event) => {
     isCustom: true,
   };
 
-  customProducts.push(product);
-  try {
-    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(customProducts));
-  } catch {
-    customProducts.pop();
+  if (!addCustomProduct(product)) {
     message.textContent = 'Browser storage is full. Use a smaller image and try again.';
     message.classList.add('is-error');
     return;
   }
 
-  products = [...defaultProducts, ...customProducts];
   currentFilter = 'all';
   showroomPage = Math.max(0, Math.ceil(products.length / SHOWROOM_PAGE_SIZE) - 1);
-  document.querySelectorAll('[data-filter]').forEach((item) => item.classList.toggle('is-active', item.dataset.filter === 'all'));
   buildProducts();
   renderAdminProducts();
   adminForm.reset();
@@ -2551,47 +2471,14 @@ adminProductList.addEventListener('click', (event) => {
   if (!deleteButton) return;
   const product = customProducts.find((item) => item.id === deleteButton.dataset.deleteProduct);
   if (!product || !window.confirm(`Remove ${product.name} from this local showroom?`)) return;
-  customProducts = customProducts.filter((item) => item.id !== product.id);
-  localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(customProducts));
-  products = [...defaultProducts, ...customProducts];
+  removeCustomProduct(product.id);
   buildProducts();
   renderAdminProducts();
   updateAdminSku();
 });
 
-addToBagButton.addEventListener('click', (event) => {
-  if (selected && !fit.some((item) => item.id === selected.id)) fit.push(selected);
-  updateFit();
-  event.currentTarget.innerHTML = 'Added to fit <span>✓</span>';
-  window.setTimeout(openFit, 520);
-});
-
-fitItemsElement.addEventListener('click', (event) => {
-  const removeButton = event.target.closest('[data-remove]');
-  if (!removeButton) return;
-  const index = fit.findIndex((product) => product.id === removeButton.dataset.remove);
-  if (index !== -1) fit.splice(index, 1);
-  updateFit();
-});
-
-document.querySelector('#fit-checkout').addEventListener('click', (event) => {
-  if (!fit.length) return;
-  event.currentTarget.innerHTML = 'Fit reserved / demo <span>✓</span>';
-  window.setTimeout(() => {
-    event.currentTarget.innerHTML = 'Reserve this fit <span>↗</span>';
-  }, 1800);
-});
-
-window.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape') return;
-  closeProduct();
-  closeFit();
-  closeTryon();
-  closeAdmin();
-});
-
 window.addEventListener('pointerdown', (event) => {
-  if (event.target !== canvas) return;
+  if (!active || event.target !== canvas) return;
   dragging = true;
   previousPointer = { x: event.clientX, y: event.clientY };
 });
@@ -2600,7 +2487,7 @@ window.addEventListener('pointerup', (event) => {
   if (!dragging) return;
   const movement = Math.hypot(event.clientX - previousPointer.x, event.clientY - previousPointer.y);
   dragging = false;
-  if (!avatarMode && movement < 6 && hovered) showProduct(hovered.userData.product);
+  if (!avatarMode && movement < 6 && hovered) api.navigate(`/p/${slugFor(hovered.userData.product)}`);
 });
 
 window.addEventListener('pointermove', (event) => {
@@ -2623,7 +2510,7 @@ window.addEventListener('pointermove', (event) => {
 });
 
 window.addEventListener('wheel', (event) => {
-  if (avatarMode || adminPanel.classList.contains('is-open')) return;
+  if (!active || avatarMode || adminPanel.classList.contains('is-open') || api.isOverlayOpen()) return;
   if (!roomEntered) {
     targetEntranceProgress = THREE.MathUtils.clamp(targetEntranceProgress + event.deltaY * 0.00082, 0, 1);
     targetZoom = THREE.MathUtils.lerp(19.8, 7.8, targetEntranceProgress);
@@ -2641,6 +2528,8 @@ window.addEventListener('resize', () => {
   if (avatarMode) {
     targetZoom = avatarZoomForViewport();
     currentZoom = targetZoom;
+  } else {
+    placeHero();
   }
 });
 
@@ -2711,7 +2600,7 @@ function animate() {
   garmentMeshes.forEach((group, index) => {
     const isFiltered = group.userData.filtered;
     const isHovered = group.userData.hovered;
-    const isSelected = selected?.id === group.userData.product.id;
+    const isSelected = false;
     const goalScale = isFiltered ? 0.001 : isSelected ? 1.16 : isHovered ? 1.09 : 1;
     group.scale.lerp(new THREE.Vector3(goalScale, goalScale, goalScale), isFiltered ? 0.1 : 0.08);
     group.position.y = group.userData.baseY + Math.sin(elapsed * 0.85 + index) * 0.018;
@@ -2738,19 +2627,51 @@ function animate() {
   if (
     roomEntered
     && !avatarMode
-    && !selected
-    && !fitPanel.classList.contains('is-open')
     && !adminPanel.classList.contains('is-open')
+    && !api.isOverlayOpen()
   ) updateInteraction();
   renderer.render(scene, camera);
-  requestAnimationFrame(animate);
+  if (active) requestAnimationFrame(animate);
+  else animating = false;
 }
 
-updateFit();
-renderAdminProducts();
-updateAdminSku();
-updateAvatarBody();
-animate();
+function activate() {
+  active = true;
+  document.body.classList.add('scene-active');
+  if (!animating) {
+    animating = true;
+    requestAnimationFrame(animate);
+  }
+}
+
+// Stops rendering while a 2D page is on screen (battery and GPU on phones).
+function deactivate() {
+  if (avatarMode) return;
+  active = false;
+  hovered = null;
+  label.classList.remove('is-visible');
+  document.body.classList.remove('scene-active');
+}
+
+subscribe(({ type }) => {
+  if (type === 'bag') {
+    updateAvatarOutfit();
+    if (avatarMode && !fit.length) closeTryon();
+  }
+  if (type === 'products') {
+    buildProducts();
+    renderAdminProducts();
+  }
+});
+
+export function initScene(app) {
+  api = app;
+  renderAdminProducts();
+  updateAdminSku();
+  updateAvatarOutfit();
+  updateAvatarBody();
+  return { activate, deactivate, openTryon, closeTryon, openAdmin, setZone };
+}
 
 // Dev-only hook for visual fit checks: __voidDebug.tryOn(['heavy-hoodie', 'wide-sweatpant']).
 if (import.meta.env.DEV) {
@@ -2766,10 +2687,11 @@ if (import.meta.env.DEV) {
         const product = products.find((item) => item.style === style);
         if (product) fit.push(product);
       });
-      updateFit();
       openTryon();
     },
     rotate(yaw) { targetAvatarYaw = yaw; },
+    enter: enterRoom,
+    setZone,
     frame(zoom, y = 3.05) {
       targetZoom = currentZoom = zoom;
       cameraTarget.y = y;
@@ -2778,6 +2700,3 @@ if (import.meta.env.DEV) {
   };
 }
 
-window.addEventListener('load', () => {
-  window.setTimeout(() => document.querySelector('#loader').classList.add('is-done'), 700);
-});

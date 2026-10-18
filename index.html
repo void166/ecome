@@ -6,9 +6,16 @@
     <meta name="theme-color" content="#070707" />
     <meta
       name="description"
-      content="A dark interactive showroom concept for the next generation of independent fashion brands."
+      content="VOID — streetwear from Ulaanbaatar. Shop the drop, try it on in 3D, pay with QPay."
     />
-    <title>VOID/01 — Interactive Showroom</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VOID" />
+    <meta property="og:title" content="VOID / Drop 002 — Afterdark club" />
+    <meta property="og:description" content="Streetwear from Ulaanbaatar. Limited pieces, 3D try-on, QPay checkout." />
+    <meta property="og:image" content="/products/hoodies.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070707'/%3E%3Ctext x='32' y='43' font-family='Arial Black,Arial' font-size='30' font-weight='900' text-anchor='middle' fill='%23d7ff3f'%3EV/%3C/text%3E%3C/svg%3E" />
+    <title>VOID/002 — Afterdark club</title>
   </head>
   <body>
     <div id="app">
@@ -19,17 +26,14 @@
       <div class="cinema-bars" aria-hidden="true"><span></span><span></span></div>
 
       <header class="topbar">
-        <a class="brand" href="#" aria-label="VOID home">
+        <a class="brand" href="/" aria-label="VOID home">
           <span class="brand-mark">V/</span>
-          <span>VOID<sup>01</sup></span>
+          <span>VOID<sup>002</sup></span>
         </a>
 
-        <nav aria-label="Primary navigation">
-          <button class="nav-link is-active" data-filter="all">All pieces</button>
-          <button class="nav-link" data-filter="tops">Tops</button>
-          <button class="nav-link" data-filter="outerwear">Outerwear</button>
-          <button class="nav-link" data-filter="bottoms">Bottoms</button>
-          <button class="nav-link" data-filter="accessories">Accessories</button>
+        <nav class="main-nav" aria-label="Primary navigation">
+          <a class="nav-link nav-drop" href="/">3D Drop</a>
+          <a class="nav-link nav-shop" href="/shop">Shop</a>
         </nav>
 
         <div class="top-actions">
@@ -40,9 +44,11 @@
         </div>
       </header>
 
-      <main>
+      <main id="page" class="page" aria-live="polite"></main>
+
+      <div class="home-ui">
         <section class="intro" aria-labelledby="intro-title">
-          <p class="eyebrow"><span></span> Digital flagship / Drop 001</p>
+          <p class="eyebrow"><span></span> Drop 002 / Afterdark club</p>
           <h1 id="intro-title">ENTER THE<br /><i>AFTERDARK.</i></h1>
           <p class="intro-copy">
             Limited forms for life after midnight. Explore the room and select a piece.
@@ -51,6 +57,7 @@
             <span>Scroll to enter</span>
             <span aria-hidden="true">↗</span>
           </button>
+          <a class="skip-link" href="/shop">Skip 3D — shop the drop <span>→</span></a>
           <div class="scroll-progress" aria-hidden="true"><span id="entry-progress"></span></div>
           <div class="entry-status" aria-hidden="true">
             <span>Access</span><strong>Ulaanbaatar / 00:00</strong>
@@ -71,36 +78,16 @@
           <button id="showroom-next" type="button" aria-label="Next display">→</button>
         </div>
 
-        <section class="product-drawer" id="product-drawer" aria-live="polite" aria-hidden="true">
-          <button class="drawer-close" type="button" aria-label="Close product details">×</button>
-          <div class="product-visual" id="product-visual">
-            <span id="product-code">V/001</span>
-            <img id="product-image" src="/products/black-jacket.jpg" alt="Night Shift Jacket" />
-          </div>
-          <div class="product-copy">
-            <p class="eyebrow">Selected piece</p>
-            <h2 id="product-name">Night Shift Jacket</h2>
-            <p id="product-description">
-              Structured outer layer with an oversized profile and technical finish.
-            </p>
-            <div class="product-meta">
-              <div><small>Color</small><strong id="product-color">Obsidian</strong></div>
-              <div><small>Fit</small><strong>Relaxed</strong></div>
-              <div><small>Drop</small><strong>001</strong></div>
-            </div>
-            <div class="product-action">
-              <strong id="product-price">₮289,000</strong>
-              <button id="add-to-bag" type="button">Add to bag <span>＋</span></button>
-            </div>
-          </div>
-        </section>
+        <nav class="zone-bar" id="zone-bar" aria-label="3D zones"></nav>
+        <aside class="look-card" id="look-card" aria-label="Shop the look"></aside>
+      </div>
 
         <section class="fit-panel" id="fit-panel" aria-hidden="true" aria-labelledby="fit-title">
-          <button class="fit-close" type="button" aria-label="Close your fit">×</button>
+          <button class="fit-close" type="button" aria-label="Close bag">×</button>
           <header class="fit-header">
-            <p class="eyebrow"><span></span> Digital mirror</p>
-            <h2 id="fit-title">YOUR<br /><i>VOID FIT.</i></h2>
-            <p>Build one afterdark uniform. Every piece you add becomes part of the look.</p>
+            <p class="eyebrow"><span></span> Bag / Drop 002</p>
+            <h2 id="fit-title">YOUR<br /><i>FIT.</i></h2>
+            <p>Pick your sizes, try the whole fit on the 3D body, pay with QPay.</p>
           </header>
           <div class="fit-items" id="fit-items">
             <div class="fit-empty">
@@ -112,8 +99,89 @@
           <footer class="fit-footer">
             <div><span>Fit total</span><strong id="fit-total">₮0</strong></div>
             <button id="open-tryon" class="tryon-launch" type="button">Try on this fit <span>◎</span></button>
-            <button id="fit-checkout" type="button">Reserve this fit <span>↗</span></button>
+            <button id="fit-checkout" type="button">Checkout <span>↗</span></button>
+            <p class="fit-note" id="fit-note" aria-live="polite"></p>
           </footer>
+        </section>
+
+        <section class="checkout-panel" id="checkout-panel" aria-hidden="true" aria-labelledby="checkout-title">
+          <button class="checkout-close" type="button" aria-label="Close checkout">×</button>
+          <header class="fit-header checkout-header">
+            <p class="eyebrow"><span></span> <b id="checkout-step">Step 01 / Delivery</b></p>
+            <h2 id="checkout-title">CHECK<br /><i>OUT.</i></h2>
+          </header>
+
+          <form class="checkout-form" id="checkout-form" novalidate>
+            <div class="checkout-scroll">
+              <div class="checkout-lines" id="checkout-lines"></div>
+              <div class="checkout-fields">
+                <label class="field">
+                  <span>Full name</span>
+                  <input name="name" autocomplete="name" required minlength="2" maxlength="60" />
+                </label>
+                <label class="field">
+                  <span>Phone</span>
+                  <input name="phone" type="tel" inputmode="tel" autocomplete="tel-national" required placeholder="99112233" maxlength="16" />
+                </label>
+                <label class="field field-wide">
+                  <span>Email <em>optional</em></span>
+                  <input name="email" type="email" autocomplete="email" maxlength="120" />
+                </label>
+                <label class="field field-wide">
+                  <span>District</span>
+                  <select name="district" id="checkout-district" required>
+                    <option value="">Choose district</option>
+                  </select>
+                </label>
+                <label class="field field-wide">
+                  <span>Delivery address</span>
+                  <textarea name="address" rows="2" autocomplete="street-address" required minlength="6" maxlength="300" placeholder="Khoroo, building, entrance, apartment"></textarea>
+                </label>
+                <label class="field field-wide">
+                  <span>Note <em>optional</em></span>
+                  <input name="note" maxlength="300" placeholder="Door code, best time to call" />
+                </label>
+              </div>
+            </div>
+            <footer class="checkout-footer">
+              <div class="checkout-totals">
+                <div><span>Subtotal</span><strong id="checkout-subtotal">₮0</strong></div>
+                <div><span>Delivery</span><strong id="checkout-delivery">Free</strong></div>
+                <div class="checkout-total"><span>Total</span><strong id="checkout-total">₮0</strong></div>
+              </div>
+              <p class="checkout-error" id="checkout-error" role="alert"></p>
+              <button type="submit" id="checkout-submit">Pay with QPay <span>↗</span></button>
+            </footer>
+          </form>
+
+          <div class="checkout-payment" id="checkout-payment" hidden>
+            <div class="payment-head">
+              <div><small>Order</small><strong id="payment-number">VOID-0</strong></div>
+              <div><small>Amount</small><strong id="payment-amount">₮0</strong></div>
+              <div><small>Expires in</small><strong id="payment-timer">30:00</strong></div>
+            </div>
+            <div class="payment-body">
+              <img class="payment-qr" id="payment-qr" alt="QPay QR code" hidden />
+              <p class="payment-copy" id="payment-copy">Scan the QR with any bank app, or open your bank below.</p>
+              <div class="payment-banks" id="payment-banks"></div>
+              <p class="payment-status" id="payment-status" aria-live="polite"><span></span> Waiting for payment</p>
+            </div>
+            <footer class="checkout-footer">
+              <button type="button" id="payment-check">I have paid — check now <span>↻</span></button>
+              <button type="button" id="payment-demo" class="payment-demo" hidden>Simulate payment (demo) <span>✓</span></button>
+              <button type="button" id="payment-cancel" class="payment-back">Change order details</button>
+            </footer>
+          </div>
+
+          <div class="checkout-done" id="checkout-done" hidden>
+            <div class="done-mark" aria-hidden="true">✓</div>
+            <h3 id="done-title">Payment received</h3>
+            <p id="done-copy"></p>
+            <div class="checkout-lines" id="done-lines"></div>
+            <footer class="checkout-footer">
+              <button type="button" id="done-continue">Continue exploring <span>→</span></button>
+            </footer>
+          </div>
         </section>
 
         <section class="tryon-studio" id="tryon-studio" aria-hidden="true" aria-labelledby="tryon-title">
@@ -315,19 +383,14 @@
           <strong id="label-name">Night Shift Jacket</strong>
         </div>
 
-        <div class="sound-status" aria-hidden="true">
-          <span></span><span></span><span></span><span></span>
-          <small>Ambient</small>
-        </div>
-      </main>
 
       <div class="loader" id="loader">
-        <div class="loader-brand">VOID<sup>01</sup></div>
+        <div class="loader-brand">VOID<sup>002</sup></div>
         <div class="loader-line"><span></span></div>
         <small>Building the room</small>
       </div>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/app.js"></script>
   </body>
 </html>
